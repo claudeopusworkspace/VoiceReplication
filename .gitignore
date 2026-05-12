@@ -1,0 +1,36 @@
+# Cloned model repos — tracked via MODELS.md manifest, not vendored
+generators/*/
+specialized/*/
+
+# Reference voice data — keep out of version control until we decide what's shareable
+reference_voice/*
+!reference_voice/.gitkeep
+!reference_voice/README.md
+
+# Test outputs — regeneratable
+tests/outputs/
+tests/results/
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Model weights / cache (in case any leak into tracked dirs)
+*.pt
+*.pth
+*.bin
+*.safetensors
+*.onnx
+*.ckpt
+*.gguf
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+*.swp
