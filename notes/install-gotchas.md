@@ -189,6 +189,58 @@ Multiple compounding issues:
 - First `TTS_Config({...})` instantiation writes a `custom:` block back into
   `GPT_SoVITS/configs/tts_infer.yaml` — harmless but mutates the repo.
 
+### Bark (`specialized/bark`)
+- `soundfile` is not in Bark's default install — `uv pip install soundfile`
+  before running anything that uses it.
+- Bark checkpoints contain pickled `numpy.core.multiarray.scalar` objects, so
+  torch ≥ 2.6's `weights_only=True` default rejects them at load with
+  `UnpicklingError`. Same class of issue as XTTS-v2. Fix: monkey-patch
+  `torch.load` to force `weights_only=False` **before** importing `bark`.
+- API is clean: `from bark import generate_audio, preload_models; preload_models(); audio = generate_audio(text)`. Returns numpy float32 at 24 kHz.
+
+### NeuTTS Air (`specialized/neutts-air`)
+- Constructor takes **separate device kwargs** — `backbone_device` and
+  `codec_device`, not a unified `device=`. Set both to `"cuda"` for full GPU.
+- Voice cloning requires **both** a reference wav AND a reference transcript
+  (LLM is conditioned on text+audio). The repo bundles `samples/jo.wav` +
+  `samples/jo.txt` — use those for a hands-off smoke test.
+- The real class is `neutts.neutts.NeuTTS`; `neuttsair.neutts.NeuTTSAir` is a
+  thin re-export. Either import works.
+- A stale `output.wav` ships in the repo root from prior testing — write your
+  output elsewhere (we use `tests/outputs/smoke/neutts-air.wav`).
+
+### OmniVoice (`specialized/omnivoice`)
+- `uv sync` gave us `torch 2.8.0+cu128` for free (sm_120 in arch list).
+- API: `from omnivoice import OmniVoice; m = OmniVoice.from_pretrained("k2-fsa/OmniVoice", device_map="cuda:0", dtype=torch.float16)`.
+- `m.generate(text=...)` returns a **list of numpy arrays**, one per input —
+  use `audio[0]` for a single-text call, not a tensor.
+- Sample rate at `model.sampling_rate` (24 kHz), not the `tts_model.sample_rate`
+  path some other models use.
+- Auto Voice mode (no reference) works out of the box and is the easiest
+  smoke-test entrypoint. The repo's `examples/` ships training shell scripts
+  only — **no bundled reference wavs**, so voice-cloning mode needs audio from
+  elsewhere if you want to test it.
+
+### RVC (`specialized/rvc`)
+- **No usable weights bundled.** The `assets/{hubert,pretrained,weights,indices,rmvpe}/`
+  folders contain only tiny `*_inputs.pth` shape stubs (~30–170 KB). Real
+  weights must be fetched:
+  - HuBERT content encoder (`hubert_base.pt`, ~190 MB) from HF `lj1995/VoiceConversionWebUI`
+  - A target-voice `.pth` from any community RVC voice repo (we used
+    `aa444rt/RVC_V2_models_5_japanese_womens` for `V2-AISO-HOWATTO.pth`, ~55 MB)
+  - `rmvpe.pt` (~180 MB) only if using f0-conditioned voice models; pick
+    `f0_method='pm'` to avoid this download for non-f0 voice models.
+- torch ≥ 2.6's `weights_only=True` rejects fairseq's HuBERT checkpoint (it
+  pickles `fairseq.data.dictionary.Dictionary`). Same monkey-patch as Bark/XTTS.
+- **CWD-sensitive.** Everything uses relative paths (`assets/hubert/hubert_base.pt`,
+  `os.getenv("weight_root")`, etc.). `os.chdir(RVC_DIR)` + `load_dotenv(RVC_DIR/".env")`
+  before any RVC import.
+- `Config()` calls `argparse` on `sys.argv` directly — would crash on stray
+  args from the harness. Clear with `sys.argv = sys.argv[:1]` before
+  instantiating.
+- The repo is a Gradio WebUI, not an SDK. Calling `VC` from `infer.modules.vc.modules`
+  directly is cleaner than wrapping `tools/infer_cli.py`.
+
 ### Seed-VC (`specialized/seed-vc`)
 - `requirements.txt` uses inline pip flags (`torch --pre --index-url ...`).
   `uv pip install` rejects those; use vanilla pip in a `--seed`ed venv:
@@ -197,6 +249,12 @@ Multiple compounding issues:
   .venv/bin/pip install -r requirements.txt
   ```
 - Conda yaml specifies Python 3.10 — uv auto-fetches CPython 3.10.20.
+- `inference.py` hard-codes `HF_HUB_CACHE = './checkpoints/hf_cache'` — must
+  `os.chdir(SEED_VC_DIR)` before import.
+- Bundled reference voices in `examples/reference/` (e.g. `teio_0.wav`,
+  `azuma_0.wav`, `dingzhen_0.wav`, `trump_0.wav`) — pick any for smoke.
+- Benign load warnings: "Skipped loading some keys: estimator.f0_embedder /
+  input_pos" — those are V2/f0-variant weights not used by V1.
 
 ### VoiceCraft (`specialized/voicecraft`) — SKIPPED
 Not installed. Three blockers, mostly the third:
