@@ -97,19 +97,40 @@ Multiple compounding issues:
    `--index-strategy unsafe-best-match`.
 2. Pins `openai-whisper==20231117`. That old version's `setup.py` imports
    `pkg_resources` at top level, and modern build isolation doesn't auto-inject
-   it. The package isn't actually imported by CosyVoice's code (only
-   architectural references). Workaround: strip the line:
+   it. **Correction to earlier note**: whisper IS used at runtime —
+   `cli/frontend.py` calls `whisper.log_mel_spectrogram` on the prompt audio
+   inside `_extract_speech_token`. Stripping it from install is fine, but you
+   must install it back before inference. Use a newer release that builds
+   cleanly:
    ```bash
-   grep -v 'openai-whisper' requirements.txt > requirements.no-whisper.txt
+   .venv/bin/pip install openai-whisper tiktoken --no-deps
    ```
-   Install from the filtered file via vanilla pip (uv's resolver is too strict
-   for the rest of this dep graph too):
+   `--no-deps` avoids pulling a torch/numba downgrade that would clobber cu128.
+3. The `third_party/Matcha-TTS` submodule is empty after a non-recursive clone.
+   `cosyvoice/flow/flow_matching.py` does `from matcha.models.components...` so
+   model load fails with `ModuleNotFoundError: No module named 'matcha'` if you
+   miss this. Init the submodule:
    ```bash
-   uv venv --python 3.11 --seed .venv         # --seed so pip is in the venv
-   .venv/bin/pip install setuptools wheel
-   .venv/bin/pip install -r requirements.no-whisper.txt
+   git submodule update --init --recursive
    ```
-3. Pulls TensorRT — venv ends up at 12 GB. Heaviest of the lot.
+   The smoke test also appends `third_party/Matcha-TTS` to `sys.path` (mirror
+   what upstream `example.py` does on line 2).
+4. Pulls TensorRT — venv ends up at 12 GB. Heaviest of the lot.
+5. **torch 2.11 upgrade for sm_120 works fine** — repo's pinned torch 2.3.1 was
+   bumped to 2.11.0+cu128 (matched torchaudio 2.11.0+cu128). No ABI breakage in
+   the CosyVoice2 inference path despite the 8-minor-version jump.
+6. torchaudio 2.11 + torchcodec: `utils/file_utils.load_wav` calls
+   `torchaudio.load(wav, backend='soundfile')`. The `backend=` kwarg is now
+   ignored and the call routes through torchcodec. `pip install torchcodec`
+   (got 0.11.1) fixes it. A soundfile-only monkey-patch would also work but
+   requires touching repo code.
+7. First inference triggers a modelscope download of the `pengzhendong/wetext`
+   text-normalization FSTs (~10 MB) into `~/.cache/modelscope/`. Harmless,
+   just expect the network hit on a cold run.
+8. onnxruntime-gpu warns `libcudnn.so.8: cannot open shared object file` and
+   falls back to CPU EP for the campplus/speech-tokenizer ONNX sessions.
+   Doesn't fail the run — those models are tiny — but throughput is slightly
+   below what the GPU EP would give.
 
 ### IndexTTS-2 (`generators/index-tts-2`)
 - Requires `git-lfs` for weights (apt install git-lfs && git lfs install).
@@ -125,6 +146,26 @@ Multiple compounding issues:
   or auto-downloads land in the wrong place.
 - Set `use_cuda_kernel=False` to avoid BigVGAN custom-kernel JIT compilation.
 - `uv sync` handles base install via `uv.lock`.
+
+### VoxCPM (`generators/voxcpm`)
+- `uv sync` handles base install via `uv.lock`. Got `torch 2.10.0+cu128` for
+  free — sm_120 compatible out of the box.
+- Default `from_pretrained("openbmb/VoxCPM2")` pulls **two** model bundles
+  before inference can run: (a) the VoxCPM2 snapshot (~6 GB across 9 files,
+  ~3.5 min on this link), and (b) the ZipEnhancer denoiser via ModelScope when
+  `load_denoiser=True` (the default). The smoke test passes `load_denoiser=False`
+  to skip the denoiser fetch — only needed at generate time with `denoise=True`.
+- `optimize=True` (the default) runs a torch.compile warm-up generation inside
+  the constructor. First-time JIT cost was ~1:45 of the ~5:50 total cold load
+  on the 5090. Subsequent loads stay slow if the inductor cache is cold; cache
+  hits make this dramatically cheaper.
+- Reference-only voice cloning (`reference_wav_path=...`) needs no transcript —
+  VoxCPM2 routes the ref clip through ref-audio tokens. Cleanest entrypoint for
+  a smoke test. The "ultimate cloning" mode (`prompt_wav_path` + `prompt_text`)
+  is the one that needs a transcript.
+- Sample rate is 48 kHz (`model.tts_model.sample_rate`), highest in the bake-off.
+- Cold-start RTF ~2.3 on the first real generation (torch.compile still settling);
+  subsequent generations should be much faster once kernels are cached.
 
 ### GPT-SoVITS (`generators/gpt-sovits`)
 - Has a complex `install.sh` we bypassed — `uv pip install -r requirements.txt`

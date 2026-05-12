@@ -29,8 +29,9 @@ __pycache__/
 *.ckpt
 *.gguf
 
-# Editor / OS
+# Editor / OS / tooling
 .vscode/
 .idea/
+.claude/
 .DS_Store
 *.swp
