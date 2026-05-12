@@ -66,6 +66,25 @@ Multiple compounding issues:
 - Has a complex `install.sh` we bypassed — `uv pip install -r requirements.txt`
   was enough for inference. May need install.sh later for training/fine-tune.
 
+### Seed-VC (`specialized/seed-vc`)
+- `requirements.txt` uses inline pip flags (`torch --pre --index-url ...`).
+  `uv pip install` rejects those; use vanilla pip in a `--seed`ed venv:
+  ```bash
+  uv venv --python 3.10 --seed .venv
+  .venv/bin/pip install -r requirements.txt
+  ```
+- Conda yaml specifies Python 3.10 — uv auto-fetches CPython 3.10.20.
+
+### VoiceCraft (`specialized/voicecraft`) — SKIPPED
+Not installed. Three blockers, mostly the third:
+1. Requires Python 3.9.16 specifically.
+2. Requires Montreal Forced Aligner from conda-forge (no PyPI equivalent).
+3. Requires torch 2.0.1 with CUDA 11.7. The RTX 5090 is sm_120 and needs
+   torch >= 2.6 for that compute capability. Even if install succeeded,
+   inference would fail with `no kernel image is available for execution`.
+Revisit only if we actually need speech editing. Recommended path is installing
+miniconda and following their README literally — uv can't handle this one.
+
 ## System packages needed (apt)
 - `git-lfs` (for IndexTTS-2 weights and others)
 - `portaudio19-dev` (for Fish Speech / pyaudio)
