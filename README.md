@@ -25,12 +25,14 @@ re-clone them.
 ## Status
 
 - [x] Research current open-source voice cloning landscape
-- [x] Clone 16 candidate model repos (10 general-purpose, 6 specialized)
-- [ ] Gather character voice reference data
-- [ ] Stand up per-model virtual environments + verify each runs
-- [ ] Design comparison test harness
-- [ ] Run bake-off + capture results
+- [x] Clone 16 candidate model repos (10 general-purpose, 6 specialized) — VoiceCraft deferred (torch 2.0/cu117 incompatible with sm_120)
+- [x] Gather character voice reference data — 377 clips / ~17 min @ 48kHz mono
+- [x] Stand up per-model virtual environments + verify each runs (15 / 16)
+- [x] Design comparison test harness (`tests/HARNESS.md`)
+- [x] Run zero-shot bake-off — **225 outputs across 15 models × 5 refs × 3 sentences**; see `tests/RESULTS.md`
+- [ ] Few-shot / fine-tune experiments (GPT-SoVITS, RVC, possibly XTTS-v2)
+- [ ] Pick winning approach and document a production recipe
 
 ## Hardware
 
-NVIDIA RTX 5090 (32 GB VRAM). All 16 models are feasible to run locally.
+NVIDIA RTX 5090 (32 GB VRAM, compute capability **sm_120**). All 15 installed models run locally. Note: torch wheels must be cu128 or cu130 — stock PyPI torch (max sm_90) will not work on this GPU.
