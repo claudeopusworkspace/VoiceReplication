@@ -11,6 +11,9 @@ reference_voice/*
 tests/outputs/
 tests/results/
 
+# Scratch / listen-pick folders (typically character audio — not for git)
+_listen/
+
 # Python
 .venv/
 __pycache__/
