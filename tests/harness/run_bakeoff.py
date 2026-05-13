@@ -25,8 +25,7 @@ OUTPUTS_DIR = ROOT / "tests" / "outputs" / "harness"
 # kind: "tts" takes text; "vc" takes a source wav (handled separately)
 MODELS = {
     # Tier 1
-    "chatterbox":         (ROOT / "generators/chatterbox/.venv/bin/python", HARNESS / "run_chatterbox.py",         "tts"),
-    "chatterbox-tuned":   (ROOT / "generators/chatterbox/.venv/bin/python", HARNESS / "run_chatterbox-tuned.py",   "tts"),
+    "chatterbox":   (ROOT / "generators/chatterbox/.venv/bin/python",     HARNESS / "run_chatterbox.py",   "tts"),
     "f5-tts":       (ROOT / "generators/f5-tts/.venv/bin/python",         HARNESS / "run_f5-tts.py",       "tts"),
     "xtts-v2":      (ROOT / "generators/xtts-v2/.venv/bin/python",        HARNESS / "run_xtts-v2.py",      "tts"),
     "index-tts-2":  (ROOT / "generators/index-tts-2/.venv/bin/python",    HARNESS / "run_index-tts-2.py",  "tts"),
