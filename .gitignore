@@ -11,6 +11,14 @@ reference_voice/*
 tests/outputs/
 tests/results/
 
+# Fine-tune training artifacts — regeneratable from in-repo scripts
+tests/finetune/*/ckpt/
+tests/finetune/*/diana_ckpt/
+tests/finetune/*/diana_dataset/
+tests/finetune/*/logs/
+tests/finetune/*/tb/
+tests/finetune/**/train.log
+
 # Scratch / listen-pick folders (typically character audio — not for git)
 _listen/
 

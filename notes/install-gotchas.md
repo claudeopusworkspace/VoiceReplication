@@ -230,8 +230,23 @@ Multiple compounding issues:
     `aa444rt/RVC_V2_models_5_japanese_womens` for `V2-AISO-HOWATTO.pth`, ~55 MB)
   - `rmvpe.pt` (~180 MB) only if using f0-conditioned voice models; pick
     `f0_method='pm'` to avoid this download for non-f0 voice models.
+- For **training** specifically, also fetch (per sample rate):
+  - `pretrained_v2/f0G48k.pth` + `pretrained_v2/f0D48k.pth` (~70 + 130 MB) for
+    48 kHz v2 training — the base generator/discriminator weights to fine-tune from.
 - torch ≥ 2.6's `weights_only=True` rejects fairseq's HuBERT checkpoint (it
   pickles `fairseq.data.dictionary.Dictionary`). Same monkey-patch as Bark/XTTS.
+  This also hits **`infer/modules/train/extract_feature_print.py`** during
+  training pre-prep — wrap it with a runpy launcher that patches torch.load
+  first (see `tests/finetune/rvc/run_feature_extract_wrapped.py`).
+- **`"spec" in inp_path` substring-match bug in 3 f0 extraction scripts.** Any
+  exp_dir whose absolute path contains the literal substring "spec" (e.g.
+  living under `specialized/rvc/...`) will cause every file to be skipped and
+  the script prints `no-f0-todo` with empty output. Affects:
+  - `infer/modules/train/extract/extract_f0_rmvpe.py:118`
+  - `infer/modules/train/extract/extract_f0_rmvpe_dml.py:118`
+  - `infer/modules/train/extract/extract_f0_print.py:157`
+  Patch: change `if "spec" in inp_path:` → `if "spec" in name:`. Already applied
+  in our clone (gitignored upstream — re-apply on reclone).
 - **CWD-sensitive.** Everything uses relative paths (`assets/hubert/hubert_base.pt`,
   `os.getenv("weight_root")`, etc.). `os.chdir(RVC_DIR)` + `load_dotenv(RVC_DIR/".env")`
   before any RVC import.

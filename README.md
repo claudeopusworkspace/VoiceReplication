@@ -30,8 +30,8 @@ re-clone them.
 - [x] Stand up per-model virtual environments + verify each runs (15 / 16)
 - [x] Design comparison test harness (`tests/HARNESS.md`)
 - [x] Run zero-shot bake-off — **225 outputs across 15 models × 5 refs × 3 sentences**; see `tests/RESULTS.md`
-- [ ] Few-shot / fine-tune experiments (GPT-SoVITS, RVC, possibly XTTS-v2)
-- [ ] Pick winning approach and document a production recipe
+- [x] Few-shot / fine-tune experiments — GPT-SoVITS (v2/v2Pro/v4), RVC, NeuTTS-Air, VoxCPM; see `tests/RESULTS.md` session 2
+- [ ] ~~Pick winning approach and document a production recipe~~ — TTS timbre cloning is good, but text-to-prosody control is paradigm-limited; project parked in favor of a separate V2V experiment
 
 ## Hardware
 

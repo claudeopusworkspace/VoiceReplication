@@ -30,17 +30,23 @@ MODELS = {
     "xtts-v2":      (ROOT / "generators/xtts-v2/.venv/bin/python",        HARNESS / "run_xtts-v2.py",      "tts"),
     "index-tts-2":  (ROOT / "generators/index-tts-2/.venv/bin/python",    HARNESS / "run_index-tts-2.py",  "tts"),
     "gpt-sovits":   (ROOT / "generators/gpt-sovits/.venv/bin/python",     HARNESS / "run_gpt-sovits.py",   "tts"),
+    "gpt-sovits-v2-ft":    (ROOT / "generators/gpt-sovits/.venv/bin/python", HARNESS / "run_gpt-sovits-v2-ft.py",    "tts"),
+    "gpt-sovits-v2Pro-ft": (ROOT / "generators/gpt-sovits/.venv/bin/python", HARNESS / "run_gpt-sovits-v2Pro-ft.py", "tts"),
+    "gpt-sovits-v4-ft":    (ROOT / "generators/gpt-sovits/.venv/bin/python", HARNESS / "run_gpt-sovits-v4-ft.py",    "tts"),
     # Tier 2
     "cosyvoice":    (ROOT / "generators/cosyvoice/.venv/bin/python",      HARNESS / "run_cosyvoice.py",    "tts"),
     "voxcpm":       (ROOT / "generators/voxcpm/.venv/bin/python",         HARNESS / "run_voxcpm.py",       "tts"),
+    "voxcpm-ft":    (ROOT / "generators/voxcpm/.venv/bin/python",         HARNESS / "run_voxcpm-ft.py",    "tts"),
     "fish-speech":  (ROOT / "generators/fish-speech/.venv/bin/python",    HARNESS / "run_fish-speech.py",  "tts"),
     "styletts2":    (ROOT / "generators/styletts2/.venv/bin/python",      HARNESS / "run_styletts2.py",    "tts"),
     "tortoise-tts": (ROOT / "generators/tortoise-tts/.venv/bin/python",   HARNESS / "run_tortoise-tts.py", "tts"),
     # Tier 3
     "bark":         (ROOT / "specialized/bark/.venv/bin/python",          HARNESS / "run_bark.py",         "tts"),
     "neutts-air":   (ROOT / "specialized/neutts-air/.venv/bin/python",    HARNESS / "run_neutts-air.py",   "tts"),
+    "neutts-air-ft":(ROOT / "specialized/neutts-air/.venv/bin/python",    HARNESS / "run_neutts-air-ft.py","tts"),
     "omnivoice":    (ROOT / "specialized/omnivoice/.venv/bin/python",     HARNESS / "run_omnivoice.py",    "tts"),
     "rvc":          (ROOT / "specialized/rvc/.venv/bin/python",           HARNESS / "run_rvc.py",          "vc"),
+    "rvc-ft":       (ROOT / "specialized/rvc/.venv/bin/python",           HARNESS / "run_rvc-ft.py",       "vc"),
     "seed-vc":      (ROOT / "specialized/seed-vc/.venv/bin/python",       HARNESS / "run_seed-vc.py",      "vc"),
 }
 

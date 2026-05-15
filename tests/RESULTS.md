@@ -70,3 +70,49 @@ generators/<model>/.venv/bin/python tests/harness/run_bakeoff.py --models <model
 ```
 
 Outputs live at `tests/outputs/harness/<model>/<ref_id>__<sentence_id>.wav` (gitignored).
+
+---
+
+# Bake-off results — session 2 (2026-05-14 → 2026-05-15)
+
+Fine-tune phase. All four planned experiments shipped on the 250-clip / ~17 min Diana dataset (curated subset of `reference_voice/ch05000_base_dialogue__en.manifest.csv`).
+
+## What ran
+
+| Model | Variant | Training config | Wall time | Where it lives |
+|---|---|---|---|---|
+| **GPT-SoVITS** | v2 (full FT) | 8 SoVITS ep + 15 GPT ep, batch 12/8 | ~3 min | `tests/finetune/gpt-sovits/`, weights at `generators/gpt-sovits/{SoVITS,GPT}_weights_v2/` |
+| **GPT-SoVITS** | v2Pro (full FT + SV emb) | same | ~3 min | `..._v2Pro/` |
+| **GPT-SoVITS** | v4 (LoRA r=32) | same | ~3 min | `..._v4/` |
+| **RVC** | 48 kHz v2, with FAISS index | 100 ep, batch 8 | ~30 sec | `tests/finetune/rvc/`, weights at `specialized/rvc/assets/weights/diana_rvc.pth` + index at `specialized/rvc/logs/diana_rvc/` |
+| **NeuTTS-Air** | full backbone FT | 500 steps, batch 4, lr 4e-5, ~8 epochs | ~86 min | `tests/finetune/neutts-air/diana_ckpt/` |
+| **VoxCPM** | LoRA r=32 α=32 | 1000 steps, ~64 epochs | ~17 min | `tests/finetune/voxcpm/ckpt/step_0001000/` |
+
+Inference adapters mirror the harness pattern: `tests/harness/run_<model>-ft.py`. Side-by-side gallery at `_listen/finetune/index.html` (10 columns: 4 zero-shot baselines + 6 FT variants).
+
+## Listening verdict (Woj's ear)
+
+> "The cloning is actually good — it's just the limitations of TTS at play when it comes to fine-tuned control of the speech."
+
+**Timbre / identity** across the FT models was satisfactory. The wall was prosody:
+- Em-dash (`—`) was not interpreted as a pause by *any* TTS variant. Mitigated mid-session by replacing `—` with `.` in `tests/harness/sentences.json` (`c_excited`).
+- Exclamation-mark words (`here!`) didn't get an excited pitch rise in any GPT-SoVITS variant.
+- Pacing inherited from the reference clip rather than the text emotion; `speed_factor` only post-hoc time-stretches.
+
+GPT-SoVITS results converged at `top_3_acc ≈ 0.55` across v2/v2Pro/v4 — suggesting either capacity or step count was the bottleneck for the s1 (GPT) component, which is the prosody-controlling piece.
+
+## What we learned about the toolchain
+
+Patched upstream bugs (documented in `notes/install-gotchas.md`):
+- **GPT-SoVITS `TTS_Config`** silently falls back to default v2 weights unless the config dict is wrapped in `{"custom": {...}}`. Affected all three FT adapters until detected by a listener finding every column bit-identical.
+- **RVC** had four upstream bugs preventing training:
+  - `"spec" in inp_path` substring bug in three f0-extraction scripts (false-matches when path contains `specialized/`).
+  - `torch.load` `weights_only=True` rejecting the fairseq HuBERT checkpoint in feature extraction.
+  - `matplotlib.figure.FigureCanvasAgg.tostring_rgb()` removed in 3.10+ — used in spectrogram TB logging.
+  - `tools/infer/train-index-v2.py` hardcoded `./logs/anz/...` instead of taking the exp name as arg (replaced by `tests/finetune/rvc/build_index.py`).
+- **NeuTTS-Air** inference venv missing several finetune-only deps: `loguru`, `fire`, `accelerate>=0.26`. Installed.
+- **VoxCPM** `from_pretrained(lora_weights_path=...)` defaults to `LoRAConfig(r=8)` — must pass explicit `lora_config=LoRAConfig(r=32, alpha=32, ...)` matching training, or the safetensors load fails with a shape mismatch at the rank dimension.
+
+## Project status
+
+Parked. The TTS approaches we tested do clone the timbre well but can't drive prosody from text alone for emotive character work. Woj is opening a separate project to explore **Voice-to-Voice** — synthesize emotive source audio (user-read or another TTS), then convert with RVC / Seed-VC. The Diana RVC model trained this session is reusable there directly.
