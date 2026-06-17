@@ -16,6 +16,7 @@ reproducibility. Update them whenever we re-sync from upstream.
 | `xtts-v2` | [coqui-ai/TTS](https://github.com/coqui-ai/TTS) | `dbf1a08` | ~6s | CPML (non-commercial) | Baseline; most-downloaded TTS on HuggingFace |
 | `index-tts-2` | [index-tts/index-tts](https://github.com/index-tts/index-tts) | `830f6f8` | up to 15s | Apache 2.0 | **Emotion control** via vector/audio/text — best fit for character work |
 | `gpt-sovits` | [RVC-Boss/GPT-SoVITS](https://github.com/RVC-Boss/GPT-SoVITS) | `08d627c` | 5s zero-shot, OR 1min fine-tune | MIT | Straddles zero-shot and few-shot fine-tuning |
+| `dramabox` | [resemble-ai/DramaBox](https://github.com/resemble-ai/DramaBox) | `d537297` | 10s+ zero-shot | LTX-2 Community | Resemble AI's expressive TTS on LTX-2.3; prompted format with first-class non-verbal tokens |
 
 ## Tier 2 — Strong variety picks (`generators/`)
 

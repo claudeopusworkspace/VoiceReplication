@@ -40,6 +40,7 @@ MODELS = {
     "fish-speech":  (ROOT / "generators/fish-speech/.venv/bin/python",    HARNESS / "run_fish-speech.py",  "tts"),
     "styletts2":    (ROOT / "generators/styletts2/.venv/bin/python",      HARNESS / "run_styletts2.py",    "tts"),
     "tortoise-tts": (ROOT / "generators/tortoise-tts/.venv/bin/python",   HARNESS / "run_tortoise-tts.py", "tts"),
+    "dramabox":     (ROOT / "generators/dramabox/.venv/bin/python",       HARNESS / "run_dramabox.py",     "tts"),
     # Tier 3
     "bark":         (ROOT / "specialized/bark/.venv/bin/python",          HARNESS / "run_bark.py",         "tts"),
     "neutts-air":   (ROOT / "specialized/neutts-air/.venv/bin/python",    HARNESS / "run_neutts-air.py",   "tts"),

@@ -22,7 +22,7 @@ else:
     INDEX_HTML = OUT_DIR / "_index.html"
 
 # Models in the order we want them displayed
-MODELS_TIER1 = ["chatterbox", "f5-tts", "xtts-v2", "index-tts-2", "gpt-sovits"]
+MODELS_TIER1 = ["chatterbox", "f5-tts", "xtts-v2", "index-tts-2", "gpt-sovits", "dramabox"]
 MODELS_TIER2 = ["cosyvoice", "voxcpm", "fish-speech", "styletts2", "tortoise-tts"]
 MODELS_TIER3 = ["bark", "neutts-air", "omnivoice", "rvc", "seed-vc"]
 ALL_MODELS = MODELS_TIER1 + MODELS_TIER2 + MODELS_TIER3
